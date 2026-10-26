@@ -49,13 +49,11 @@ void selection_sort(int a[], int n) {
 // INSERTION SORT //
 
 */
-
-
 void insertion_sort(int a[], int n) {
     int i, j;
-    for(i = 0; i < n; i++) {
-        j = i + 1;
-        while(a[j] <= a[j - 1]  && j > 0 ){
+    for(i = 1; i < n; i++) {
+        j = i;
+        while( j > 0 && a[j] < a[j - 1] ){
             swap(&a[j - 1], &a[j]);
             j--;
         }
@@ -76,20 +74,20 @@ void bubble_sort(int a[], int n) {
 
 
 // Quick sort 
-int findPivot(int a[], int i, int j) { // j = n - 1, return index
-    int k = i + 1;
-    while(k <= j && a[k] == a[j]) {
+int findPivot(int a[], int i, int j) { // j = n - 1, return index, co the i la index dau 
+    int k = i + 1; // tai sao k = i + 1 
+    while(k <= j && a[k] == a[i]) { // k > j or a[k] != a[j]
         k++;
     }
     if (k > j) return -1;
     return a[k] > a[i] ? k : i; // Luu y: k compare i not j, j is the highly 
 }
 
-int partition(int a[], int i, int j, int Pivot) {
+int partition(int a[], int i, int j, int Pivot) { // j = n - 1 // Tim L cho de cat
     int L = i;
     int R = j;
 
-    while(L <= R) {
+    while(L <= R) { // Phu dinh cua L > R 
         while(a[L] < a[Pivot]) L++;
         while(a[R] >= a[Pivot]) R--;
         if(L <= R) swap(&a[L], &a[R]);
@@ -105,8 +103,17 @@ void quick_sort(int a[], int i, int j, int Pivot) {
         quick_sort(a, k, j, findPivot(a, k, j));
     }
 }
+
+
 // Heap sort 
-void PushDown(int a[], int first, int last) {
+
+
+// PushDown chi ap dung cho 2 truong hop 
+// Tao heap ban dau
+// first = n - 2 / 2
+// last = n - 1 tui nghi chac rao bien thoi
+// r = 1 
+void PushDown(int a[], int first, int last) { // Ham k goi de quy cach viet cua co , tinh theo index 
     int r = first;
 
     while (r <= (last - 1) / 2) {
@@ -120,13 +127,12 @@ void PushDown(int a[], int first, int last) {
         // 2. Nút r có đủ 2 con: Con trái nhỏ hơn hoặc bằng con phải
         else if ((a[r] > a[2 * r + 1]) && (a[2 * r + 1] <= a[2 * r + 2])) {
             swap(&a[r], &a[2 * r + 1]);
-            r = 2 * r + 1;
+            r = 2 * r + 1; // Doi vs ai pushdown tk do lai
         } 
         // 3. Nút r có đủ 2 con: Con phải nhỏ hơn con trái
         else if ((a[r] > a[2 * r + 2]) && (a[2 * r + 2] < a[2 * r + 1])) {
             swap(&a[r], &a[2 * r + 2]);
-            r = 2 * r + 2; // Chia ra 2 truong hop 1:neu nhu r = First du lon thi no se chay nguoc ve 0 khi no se vang 
-                            // TH2: Neu nhu r nho chay tu 0 thi no se day r len, tui van chua hinh dung duoc no se chay sao
+            r = 2 * r + 2; // Kieu nhu khi lam may tk nho nhu 0 1 2 xong phai nhay xuong kia coi no co heap k 
         } 
         // 4. Nút r đã nhỏ hơn cả 2 con -> Đúng vị trí rồi
         else {
@@ -136,12 +142,14 @@ void PushDown(int a[], int first, int last) {
 }
 
 // Hinh thanh y tuong
-// B1: 
+// B1: Minh se coi thu trong 2 tk left vs right co ai nho hon tk first k;
+// Th1: Co ==> Doi cho xong don gian chi can push down vao cho moi doi
+// Th2: K ==> Thi se ngung 
 void PushDown_1(int a[], int first, int last) {  // Cach khong su dung while khong hieu lam phai nghien cuu lai 
     int r = first;
     int smallest = r;
-    int left = 2 * r + 1;
-    int right = 2 * r + 2;
+    int left = 2 * r + 1; // left = 9
+    int right = 2 * r + 2; // right = 10 
 
     // 1. So sánh với con trái (nếu con trái nằm trong phạm vi last)
     if (left <= last && a[left] < a[smallest]) {
@@ -166,22 +174,80 @@ void PushDown_1(int a[], int first, int last) {  // Cach khong su dung while kho
 void HeapSort(int a[], int n) {
     int i;
     for(i = (n - 2) / 2; i >= 0; i--) {
-        PushDown(a, i, n - 1); // Tai sao lau la n - 1
+        PushDown(a, i, n - 1); // Tai sao lau la n - 1, n - 1 la vi tri last nen no co the la th 1 hoac khong thi no se du 2 nhanh left va right cho de nhin va do pushdown c
+                                // co viet se co last - 1 / 2 => r la tinh toi truong hop tron dau tien 
     }
     for(i = n - 1; i >= 2; i--) {
-        swap(&a[0], &a[i]);
-        PushDown(a, 0, i - 1);
+        swap(&a[0], &a[i]); 
+        PushDown(a, 0, i - 1); // pushdown(a, 0, 1)
     }
-    swap(&a[0], &a[i]);
+    swap(&a[0], &a[1]); 
 }
 
 
+void merge(int a[], int left, int mid, int right) {
+    int count = right - left + 1;
+
+    int temp[count];
+    int i = left;
+    int j = mid + 1;
+    int z = 0;
+    while(i <= mid && j <= right) {
+        if(a[i] < a[j]) {
+            temp[z] = a[i];
+            i++;
+        }
+        else {
+            temp[z] = a[j];
+            j++;
+        }
+        z++;
+    }
+    // 2. Vét phần tử còn thừa ở nửa trái (nếu nửa phải hết trước)
+    while (i <= mid) {
+        temp[z] = a[i];
+        i++;
+        z++;
+    }
+
+    // 3. Vét phần tử còn thừa ở nửa phải (nếu nửa trái hết trước)
+    while (j <= right) {
+        temp[z] = a[j];
+        j++;
+        z++;
+    }
+
+    // 4. Chép mảng tạm temp[] ngược lại mảng gốc a[] tại vị trí tương ứng
+    for (int k = 0; k < count; k++) {
+        a[left + k] = temp[k];
+    }
+}
+
+/**
+ * @brief Hàm đệ quy chia đôi mảng và sắp xếp
+ */
+void merge_sort(int a[], int left, int right) {
+    if (left < right) {
+        int mid = left + (right - left) / 2; // Tìm điểm giữa (tránh tràn số)
+
+        // Chia để trị
+        merge_sort(a, left, mid);      // Sắp xếp nửa bên trái
+        merge_sort(a, mid + 1, right);  // Sắp xếp nửa bên phải
+
+        // Trộn 2 nửa đã sắp xếp lại với nhau
+        merge(a, left, mid, right);
+    }
+}
+
 int main() {
-    int a[7] = {99, 10, 20, 3, 5, 12, 15};
-    quick_sort(a, 0, 7, findPivot(a, 0, 7));
-    int i;
-    for(i = 0; i < 7; i++) {
+    int a[] = {38, 27, 43, 3, 9, 82, 10};
+    int n = sizeof(a) / sizeof(a[0]);
+
+    merge_sort(a, 0, n - 1);
+    for (int i = 0; i < n; i++) {
         printf("%d ", a[i]);
     }
+    printf("\n");
+
     return 0;
 }
